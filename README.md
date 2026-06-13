@@ -59,6 +59,9 @@ pip install -r requirements-minimal.txt
 
 ```powershell
 pip install -r requirements.txt
+pip install pre-commit
+pre-commit install
+pre-commit run --all-files
 pytest tests --maxfail=1 -q
 ```
 
@@ -71,6 +74,17 @@ build_exe.bat
 ## 发布与变更日志
 
 项目使用 `CHANGELOG.md` 跟踪版本变更，`GitHub Release` 模板用于创建正式发布说明。
+
+发布流程：
+
+1. 更新 `CHANGELOG.md`
+2. 创建语义版本 tag，例如 `v1.0.0`
+3. 推送 tag 到 GitHub：
+   ```bash
+git push origin v1.0.0
+```
+
+触发 `release` workflow 后，会自动生成 GitHub Release。
 
 ## 贡献与行为准则
 

@@ -39,8 +39,22 @@ git push origin feature/your-feature-name
 
 ```bash
 pip install -r requirements.txt
+pip install pre-commit
+pre-commit install
+pre-commit run --all-files
 pytest tests --maxfail=1 -q
 ```
+
+## 发布流程
+
+为了创建正式发布，请使用语义版本 tag，例如：
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+这将触发 GitHub Release workflow，并根据 `CHANGELOG.md` 生成发布说明。
 
 ## 报告问题
 
