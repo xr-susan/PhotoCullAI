@@ -1,13 +1,54 @@
+# Python artifacts
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+__pypackages__/
 *.pyo
+*.pyd
+*.spec
+*.manifest
+*.log
+
+# Virtual environments
 .venv/
+venv/
+env/
+.Python
+pyvenv.cfg
+
+# Build artifacts
 dist/
 build/
-*.spec
+.eggs/
+*.egg-info/
+*.egg
+
+# IDE/project settings
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local app artifacts
 data/cache/
 data/reports/
 data/junk/
-*.egg-info/
-.idea/
-.vscode/
+crash.log
+
+# Agent workspace files
+.agents/
