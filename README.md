@@ -68,6 +68,14 @@ pytest tests --maxfail=1 -q
 build_exe.bat
 ```
 
+## 发布与变更日志
+
+项目使用 `CHANGELOG.md` 跟踪版本变更，`GitHub Release` 模板用于创建正式发布说明。
+
+## 贡献与行为准则
+
+欢迎贡献，但请遵循 `CONTRIBUTING.md` 和 `CODE_OF_CONDUCT.md` 中的规则。
+
 ## 使用建议
 
 - 先备份原始照片
