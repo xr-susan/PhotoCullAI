@@ -1,0 +1,22 @@
+app:
+  window_title: "PhotoCullAI"
+
+thresholds:
+  keep_score: 65
+  blur_low: 80
+  blur_medium: 150
+  portrait_eye_closed: 0.18
+  landscape_skew_deg: 3.5
+  text_skew_deg: 2.0
+  duplicate_hamming: 10
+  overexposure: 0.18
+  underexposure: 0.20
+
+paths:
+  cache_dir: "data/cache"
+  reports_dir: "data/reports"
+  junk_dir: "data/junk"
+
+scan:
+  image_extensions: [".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff", ".heic"]
+  video_extensions: [".mp4", ".mov", ".mkv", ".avi", ".webm"]

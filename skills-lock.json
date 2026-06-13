@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "brainstorm": {
+      "source": "buiducnhat/agent-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/cobrew/skills/brainstorm/SKILL.md",
+      "computedHash": "d01e42752c22524c1bbaf51550295dd5b147f872ac23b96b5dbeea69632f978d"
+    },
+    "obsidian": {
+      "source": "steipete/clawdis",
+      "sourceType": "github",
+      "skillPath": "skills/obsidian/SKILL.md",
+      "computedHash": "1222d61801d38fb71b63cd990c299f7fabfd66f0920bd0185be6f36ecab31a54"
+    }
+  }
+}
