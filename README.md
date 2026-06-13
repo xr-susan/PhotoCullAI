@@ -2,34 +2,64 @@
 
 本地离线照片/视频废片自动筛选工具。
 
-## 功能
-- 图片废片分析：模糊、闭眼、姿势、曝光、文字清晰度、歪斜、反光
-- 景色分析：模糊、曝光、歪斜、色彩平淡、主体不足
-- 视频分析：关键帧模糊、过曝、欠曝、过短
-- Live Photo 支持：HEIC + MOV
-- 重复/相似图检测（感知哈希 + 文件大小）
-- 人脸特征聚类，按人物分组
-- 氛围感照片智能识别（柔焦/暖调/暗调不误判）
-- 拖拽导入
-- 左侧目录树筛选
-- 右侧缩略图网格（异步加载）
-- 批量保留 / 移动废片箱 / 永久删除
-- 一键选择废片 / 一键保留最佳
-- 预览 + 人工确认（缩放/旋转/平移）
-- 导出 CSV / JSON 报告
-- 本地运行，不依赖云服务
+## 项目简介
 
-## 安装
-```bash
+PhotoCullAI 旨在帮助用户本地批量筛选照片和视频中的废片，支持模糊、闭眼、过曝、重复、相似、Live Photo 等多种检测策略。
+
+## 项目结构
+
+- `main.py`：应用入口
+- `app/`：核心应用逻辑，包括分析器、UI、工具函数等
+- `tests/`：pytest 单元测试
+- `requirements.txt`：完整依赖
+- `requirements-minimal.txt`：精简依赖，适合轻量部署
+- `build_exe.bat`：打包 Windows 可执行文件
+- `config.yaml`：默认配置
+- `data/`：运行时缓存与报告目录
+- `.gitignore`：忽略本地环境和生成文件
+
+## 安装与运行
+
+### 1. 创建虚拟环境
+
+Windows PowerShell:
+```powershell
 python -m venv .venv
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1
+```
+
+Windows CMD:
+```bat
+python -m venv .venv
+.venv\Scripts\activate.bat
+```
+
+### 2. 安装完整依赖
+
+```powershell
+pip install --upgrade pip
 pip install -r requirements.txt
+```
+
+### 3. 运行程序
+
+```powershell
 python main.py
 ```
 
-### 精简版安装（不含大型 ML 库，功能受限）
-```bash
+### 4. 精简版依赖（可选）
+
+```powershell
 pip install -r requirements-minimal.txt
+```
+
+> 精简版依赖适合无需完整机器学习功能的环境，但部分分析功能可能会受限。
+
+## 开发与测试
+
+```powershell
+pip install -r requirements.txt
+pytest tests --maxfail=1 -q
 ```
 
 ## 打包 EXE
@@ -38,13 +68,13 @@ pip install -r requirements-minimal.txt
 build_exe.bat
 ```
 
-## 说明
+## 使用建议
 
-* 先备份原始照片
-* 这是本地分析版，不会自动删除原图
-* "移动到废片箱"只是移动，不是永久删除
-* 大批量照片建议分批扫描
-* 首次启动时 ML 模型会按需加载，无需等待
+- 先备份原始照片
+- 这是本地分析版，不会自动删除原图
+- "移动到废片箱"只是移动，不是永久删除
+- 大批量照片建议分批扫描
+- 首次启动时 ML 模型会按需加载，无需等待
 
 ## 许可证
 
