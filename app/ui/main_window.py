@@ -26,6 +26,7 @@ from app.ui.directory_tree import DirectoryTree
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from app.core.scanner import collect_media_files, analyze_one
 from app.core.duplicates import apply_duplicate_policy
+from app.core.summary import summarize_results
 from app.core.types import MediaResult
 from app.utils.file_utils import normalize_input_paths, is_supported_media_path
 from app.utils.config import get
@@ -466,9 +467,11 @@ class MainWindow(QMainWindow):
 
         csv_path = out_dir / "photo_cull_report.csv"
         json_path = out_dir / "photo_cull_report.json"
+        summary_path = out_dir / "photo_cull_summary.json"
 
         try:
             rows = [r.to_dict() for r in self.all_results]
+            summary = summarize_results(self.all_results)
             with open(csv_path, "w", newline="", encoding="utf-8-sig") as f:
                 writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
                 writer.writeheader()
@@ -476,8 +479,17 @@ class MainWindow(QMainWindow):
 
             with open(json_path, "w", encoding="utf-8") as f:
                 json.dump(rows, f, ensure_ascii=False, indent=2)
+            with open(summary_path, "w", encoding="utf-8") as f:
+                json.dump(summary, f, ensure_ascii=False, indent=2)
 
-            QMessageBox.information(self, "导出完成", f"报告已导出到：\n{csv_path}\n{json_path}")
+            QMessageBox.information(
+                self,
+                "导出完成",
+                "报告已导出到：\n"
+                f"{csv_path}\n{json_path}\n{summary_path}\n\n"
+                f"待复核：{summary['review']}，废片：{summary['junk']}，"
+                f"预计可释放：{summary['estimated_reclaimable']}"
+            )
         except Exception as e:
             QMessageBox.warning(self, "导出失败", f"导出报告时出错：{e}")
 
@@ -593,11 +605,11 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "提示", "请先勾选要删除的照片")
             return
 
-        non_keep = [r for r in selected if r.verdict != "keep"]
+        keep_items = [r for r in selected if r.verdict == "keep"]
 
         msg = f"确定要永久删除 {len(selected)} 个文件吗？\n\n此操作不可恢复！"
-        if non_keep:
-            msg += f"\n\n注意：其中有 {len(non_keep)} 个是保留照片"
+        if keep_items:
+            msg += f"\n\n注意：其中有 {len(keep_items)} 个是保留照片"
 
         reply = QMessageBox.warning(
             self, "确认永久删除", msg,

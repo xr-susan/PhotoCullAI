@@ -1,103 +1,84 @@
 # PhotoCullAI
 
-本地离线照片/视频废片自动筛选工具。
+PhotoCullAI 是一个本地运行的照片和视频初筛工具。它不会上传文件，也不会自动删除原图；它做的事情很明确：扫描一批媒体文件，给出保留、待复核、废片建议，并把结果导出成报告。
 
-## 项目简介
+它适合先粗筛旅行照、活动照、截图、Live Photo 和短视频，再由人做最后确认。
 
-PhotoCullAI 旨在帮助用户本地批量筛选照片和视频中的废片，支持模糊、闭眼、过曝、重复、相似、Live Photo 等多种检测策略。
+## 功能
 
-## 项目结构
+- 扫描文件夹或手动选择照片/视频
+- 识别常见问题：模糊、曝光异常、闭眼、文字照片倾斜、截图质量差等
+- 标记相似照片组，并推荐每组保留分数最高的一张
+- 支持 Live Photo 配对分析
+- 按目录、人物和相似组浏览结果
+- 批量保留、移动到废片箱、永久删除
+- 导出 CSV、JSON 和筛选摘要
 
-- `main.py`：应用入口
-- `app/`：核心应用逻辑，包括分析器、UI、工具函数等
-- `tests/`：pytest 单元测试
-- `requirements.txt`：完整依赖
-- `requirements-minimal.txt`：精简依赖，适合轻量部署
-- `build_exe.bat`：打包 Windows 可执行文件
-- `config.yaml`：默认配置
-- `data/`：运行时缓存与报告目录
-- `.gitignore`：忽略本地环境和生成文件
+## 报告输出
 
-## 安装与运行
+点击“导出报告”后会生成：
 
-### 1. 创建虚拟环境
+- `data/reports/photo_cull_report.csv`：适合 Excel 查看
+- `data/reports/photo_cull_report.json`：完整逐项结果
+- `data/reports/photo_cull_summary.json`：总数、废片数、相似组、预计可释放空间等摘要
 
-Windows PowerShell:
+## 安装
+
+建议使用虚拟环境：
+
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-Windows CMD:
-```bat
-python -m venv .venv
-.venv\Scripts\activate.bat
-```
-
-### 2. 安装完整依赖
-
-```powershell
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-### 3. 运行程序
+启动：
 
 ```powershell
 python main.py
 ```
 
-### 4. 精简版依赖（可选）
+如果只想运行基础功能，可以尝试精简依赖：
 
 ```powershell
-pip install -r requirements-minimal.txt
+python -m pip install -r requirements-minimal.txt
 ```
 
-> 精简版依赖适合无需完整机器学习功能的环境，但部分分析功能可能会受限。
+精简依赖下，部分人脸、OCR 或视频分析能力可能不可用。
 
-## 开发与测试
+## 使用建议
+
+- 第一次处理重要照片前，先用少量样本试跑
+- 批量删除前先看“待复核”和“相似组”
+- “移动到废片箱”只是移动到项目的 `data/junk` 目录，不等于系统回收站
+- 永久删除不可恢复，建议确认备份后再使用
+- 大批量照片可以按文件夹分批扫描，界面会更顺畅
+
+## 项目结构
+
+```text
+PhotoCullAI/
+  main.py                 应用入口
+  app/core/               分析、重复组、Live Photo、摘要统计
+  app/ui/                 PyQt6 桌面界面
+  app/utils/              文件、配置、图像工具
+  tests/                  单元测试
+  config.yaml             默认阈值和路径配置
+```
+
+## 测试
 
 ```powershell
-pip install -r requirements.txt
-pip install pre-commit
-pre-commit install
-pre-commit run --all-files
-pytest tests --maxfail=1 -q
+python -m pytest tests -q
 ```
 
-## 打包 EXE
+## 打包
 
 ```bat
 build_exe.bat
 ```
 
-## 发布与变更日志
-
-项目使用 `CHANGELOG.md` 跟踪版本变更，`GitHub Release` 模板用于创建正式发布说明。
-
-发布流程：
-
-1. 更新 `CHANGELOG.md`
-2. 创建语义版本 tag，例如 `v1.0.0`
-3. 推送 tag 到 GitHub：
-   ```bash
-git push origin v1.0.0
-```
-
-触发 `release` workflow 后，会自动生成 GitHub Release。
-
-## 贡献与行为准则
-
-欢迎贡献，但请遵循 `CONTRIBUTING.md` 和 `CODE_OF_CONDUCT.md` 中的规则。
-
-## 使用建议
-
-- 先备份原始照片
-- 这是本地分析版，不会自动删除原图
-- "移动到废片箱"只是移动，不是永久删除
-- 大批量照片建议分批扫描
-- 首次启动时 ML 模型会按需加载，无需等待
-
 ## 许可证
 
-本项目使用 MIT 许可证。详见 `LICENSE` 文件。
+MIT
