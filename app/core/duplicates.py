@@ -16,12 +16,12 @@ except Exception:
     cv2 = None
     np = None
 
-from app.utils.config import get
 from app.utils.image_utils import safe_imread
 from app.core.union_find import UnionFind
 
 try:
     import pillow_heif
+
     if Image is not None:
         pillow_heif.register_heif_opener()
 except Exception:
@@ -197,7 +197,6 @@ def _group_by_time(results, existing_groups, uf, assigned):
         try:
             # 解析时间 "2026:01:07 17:21:19"
             parts = ts.replace(":", "-", 2).split(" ")
-            date_part = parts[0]  # "2026-01-07"
             time_part = parts[1] if len(parts) > 1 else "00:00:00"
             h, m, s = [int(x) for x in time_part.split(":")]
             total_sec = h * 3600 + m * 60 + s
@@ -228,7 +227,7 @@ def apply_duplicate_policy(results):
         keeper = max(group, key=lambda idx: results[idx].score)
         for idx in group:
             results[idx].duplicate_group = gid
-            results[idx].duplicate_keep = (idx == keeper)
+            results[idx].duplicate_keep = idx == keeper
             if idx != keeper and results[idx].verdict == "keep":
                 results[idx].verdict = "junk"
                 if "相似图中非最佳" not in results[idx].reason:

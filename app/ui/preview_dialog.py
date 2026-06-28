@@ -1,15 +1,22 @@
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QGridLayout, QFrame,
-    QPushButton, QWidget
+    QDialog,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QGridLayout,
+    QFrame,
+    QPushButton,
+    QWidget,
 )
-from PyQt6.QtCore import Qt, QPoint, QRect
-from PyQt6.QtGui import QImage, QPixmap, QTransform, QPainter
+from PyQt6.QtCore import Qt, QPoint
+from PyQt6.QtGui import QPixmap, QTransform, QPainter
 
 from app.utils.image_utils import load_qpixmap
 
 
 class PannableImageWidget(QWidget):
     """支持缩放和拖动平移的图片控件"""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._pixmap = None
@@ -44,7 +51,9 @@ class PannableImageWidget(QWidget):
     def _scaled_size(self):
         if self._pixmap is None:
             return 0, 0
-        return int(self._pixmap.width() * self._scale), int(self._pixmap.height() * self._scale)
+        return int(self._pixmap.width() * self._scale), int(
+            self._pixmap.height() * self._scale
+        )
 
     def paintEvent(self, event):
         if self._pixmap is None or self._pixmap.isNull():
@@ -55,8 +64,12 @@ class PannableImageWidget(QWidget):
         if sw < 1 or sh < 1:
             painter.end()
             return
-        scaled = self._pixmap.scaled(sw, sh, Qt.AspectRatioMode.KeepAspectRatio,
-                                     Qt.TransformationMode.SmoothTransformation)
+        scaled = self._pixmap.scaled(
+            sw,
+            sh,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
         painter.drawPixmap(self._offset.x(), self._offset.y(), scaled)
         painter.end()
 
@@ -124,7 +137,9 @@ class PreviewDialog(QDialog):
         super().__init__(parent)
         self.result = result
         self.all_results = all_results or [result]
-        self.current_index = self.all_results.index(result) if result in self.all_results else 0
+        self.current_index = (
+            self.all_results.index(result) if result in self.all_results else 0
+        )
         self._current_rotation = 0
         self._base_pixmap = None
 
@@ -180,22 +195,32 @@ class PreviewDialog(QDialog):
         btn_rotate_cw = QPushButton("右旋90")
         btn_rotate_cw.clicked.connect(lambda: self._rotate_image(90))
 
-        for btn in [btn_zoom_out, btn_zoom_fit, btn_zoom_in, btn_zoom_orig,
-                    btn_rotate_ccw, btn_rotate_cw]:
+        for btn in [
+            btn_zoom_out,
+            btn_zoom_fit,
+            btn_zoom_in,
+            btn_zoom_orig,
+            btn_rotate_ccw,
+            btn_rotate_cw,
+        ]:
             btn.setFixedHeight(32)
             toolbar.addWidget(btn)
 
         toolbar.addStretch()
 
         self.zoom_label = QLabel("100%")
-        self.zoom_label.setStyleSheet("color: #5B8C9E; font-size: 12px; min-width: 60px;")
+        self.zoom_label.setStyleSheet(
+            "color: #5B8C9E; font-size: 12px; min-width: 60px;"
+        )
         toolbar.addWidget(self.zoom_label)
 
         main_layout.addLayout(toolbar)
 
         # 图片区域
         self.image_widget = PannableImageWidget()
-        self.image_widget.setStyleSheet("background: rgba(0,0,0,0.03); border-radius: 10px;")
+        self.image_widget.setStyleSheet(
+            "background: rgba(0,0,0,0.03); border-radius: 10px;"
+        )
         main_layout.addWidget(self.image_widget, stretch=1)
 
         # 信息面板
@@ -262,7 +287,9 @@ class PreviewDialog(QDialog):
             return
         self._current_rotation = (self._current_rotation + degrees) % 360
         transform = QTransform().rotate(degrees)
-        rotated = self._base_pixmap.transformed(transform, Qt.TransformationMode.SmoothTransformation)
+        rotated = self._base_pixmap.transformed(
+            transform, Qt.TransformationMode.SmoothTransformation
+        )
         self._base_pixmap = rotated
         self.image_widget.set_pixmap(rotated)
         self.zoom_label.setText(f"{self.image_widget.get_scale_percent()}%")
@@ -283,8 +310,20 @@ class PreviewDialog(QDialog):
         }
         verdict_color, verdict_text = verdict_colors.get(r.verdict, ("#888", r.verdict))
 
-        media_type_map = {"image": "图片", "video": "视频", "live_photo": "实况照片", "unknown": "未知"}
-        category_map = {"portrait": "人像", "landscape": "风景", "text": "文字", "screenshot": "截图", "video": "视频", "unknown": "未知"}
+        media_type_map = {
+            "image": "图片",
+            "video": "视频",
+            "live_photo": "实况照片",
+            "unknown": "未知",
+        }
+        category_map = {
+            "portrait": "人像",
+            "landscape": "风景",
+            "text": "文字",
+            "screenshot": "截图",
+            "video": "视频",
+            "unknown": "未知",
+        }
         cats = r.category.split(",") if "," in r.category else [r.category]
         cat_display = "·".join(category_map.get(c.strip(), c.strip()) for c in cats)
 
@@ -322,7 +361,9 @@ class PreviewDialog(QDialog):
             val.setWordWrap(True)
 
             if label_text == "建议":
-                val.setStyleSheet(f"color: {verdict_color}; font-weight: bold; font-size: 15px;")
+                val.setStyleSheet(
+                    f"color: {verdict_color}; font-weight: bold; font-size: 15px;"
+                )
 
             self.info_layout.addWidget(val, row, 1)
             row += 1

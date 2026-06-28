@@ -1,7 +1,21 @@
 import logging
 import math
+
 import cv2
 import numpy as np
+
+from app.core.face_recognition import FaceRecognitionService, get_shared_face_app
+from app.core.types import MediaResult
+from app.core.video_analyzer import analyze_video_file
+from app.utils.config import get
+from app.utils.file_utils import is_image
+from app.utils.image_utils import (
+    bgr_to_gray,
+    blur_score,
+    brightness_metrics,
+    resize_long_side,
+    safe_imread,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -50,13 +64,6 @@ DEDUCT_TEXT_REFLECTION = 12
 DEDUCT_TEXT_BLUR = 20
 DEDUCT_TEXT_BORDER = 8
 
-from app.core.types import MediaResult
-from app.utils.image_utils import safe_imread, resize_long_side, bgr_to_gray, blur_score, brightness_metrics
-from app.utils.file_utils import is_image
-from app.utils.config import get
-from app.core.video_analyzer import analyze_video_file
-from app.core.face_recognition import FaceRecognitionService, get_shared_face_app
-
 try:
     from paddleocr import PaddleOCR
 except Exception:
@@ -89,7 +96,11 @@ class OCRService:
             for item in lines:
                 if not item or len(item) < 2:
                     continue
-                conf = item[1][1] if isinstance(item[1], (list, tuple)) and len(item[1]) > 1 else item[1]
+                conf = (
+                    item[1][1]
+                    if isinstance(item[1], (list, tuple)) and len(item[1]) > 1
+                    else item[1]
+                )
                 try:
                     conf = float(conf)
                 except Exception:
@@ -131,14 +142,16 @@ class FaceAnalyzer:
                 face_boxes.append((x1, y1, x2, y2))
 
             # 106 点关键点（用于闭眼/张嘴检测）
-            if hasattr(face, 'landmark_2d_106') and face.landmark_2d_106 is not None:
+            if hasattr(face, "landmark_2d_106") and face.landmark_2d_106 is not None:
                 pts = [(int(p[0]), int(p[1])) for p in face.landmark_2d_106]
                 face_meshes.append(pts)
 
         # 姿态估计：用最大人脸的 5 关键点（双眼、鼻、嘴角）
         pose_angle = 0.0
         if faces:
-            best = max(faces, key=lambda f: (f.bbox[2]-f.bbox[0])*(f.bbox[3]-f.bbox[1]))
+            best = max(
+                faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1])
+            )
             if best.kps is not None and len(best.kps) >= 5:
                 # kps: [左眼, 右眼, 鼻子, 左嘴角, 右嘴角]
                 le, re = best.kps[0], best.kps[1]
@@ -151,13 +164,16 @@ class FaceAnalyzer:
 
 class _LazySingleton:
     """延迟初始化单例，首次访问时才创建对象。"""
+
     def __init__(self, factory):
         self._factory = factory
         self._instance = None
+
     def get(self):
         if self._instance is None:
             self._instance = self._factory()
         return self._instance
+
 
 OCR = _LazySingleton(OCRService)
 FACE = _LazySingleton(FaceAnalyzer)
@@ -169,10 +185,14 @@ def _eye_aspect_ratio(pts):
     try:
         # 左眼：35=外角, 37=上中, 39=内角, 41=下中
         le = [np.array(pts[i], dtype=np.float32) for i in (35, 37, 39, 41)]
-        left_ear = np.linalg.norm(le[1] - le[3]) / (np.linalg.norm(le[0] - le[2]) + 1e-6)
+        left_ear = np.linalg.norm(le[1] - le[3]) / (
+            np.linalg.norm(le[0] - le[2]) + 1e-6
+        )
         # 右眼：89=外角, 91=上中, 93=内角, 95=下中
         re = [np.array(pts[i], dtype=np.float32) for i in (89, 91, 93, 95)]
-        right_ear = np.linalg.norm(re[1] - re[3]) / (np.linalg.norm(re[0] - re[2]) + 1e-6)
+        right_ear = np.linalg.norm(re[1] - re[3]) / (
+            np.linalg.norm(re[0] - re[2]) + 1e-6
+        )
         return float((left_ear + right_ear) / 2.0)
     except Exception:
         return 0.0
@@ -198,7 +218,12 @@ def colorfulness_bgr(img):
         yb = np.abs(0.5 * (R + G) - B)
         std_rg, std_yb = np.std(rg), np.std(yb)
         mean_rg, mean_yb = np.mean(rg), np.mean(yb)
-        return round(float(np.sqrt(std_rg**2 + std_yb**2) + 0.3 * np.sqrt(mean_rg**2 + mean_yb**2)), 2)
+        return round(
+            float(
+                np.sqrt(std_rg**2 + std_yb**2) + 0.3 * np.sqrt(mean_rg**2 + mean_yb**2)
+            ),
+            2,
+        )
     except Exception:
         return 0.0
 
@@ -242,7 +267,7 @@ def _subject_clarity(gray, img):
         energies = []
         for i in range(3):
             for j in range(3):
-                region = edge_mag[i*rh:(i+1)*rh, j*rw:(j+1)*rw]
+                region = edge_mag[i * rh : (i + 1) * rh, j * rw : (j + 1) * rw]
                 energies.append(float(np.mean(region)))
         if not energies:
             return 0.0
@@ -289,7 +314,7 @@ def _face_relative_size(face_boxes, img_shape):
     total_area = h * w
     if total_area == 0:
         return 0.0
-    max_area = max((x2-x1)*(y2-y1) for x1, y1, x2, y2 in face_boxes)
+    max_area = max((x2 - x1) * (y2 - y1) for x1, y1, x2, y2 in face_boxes)
     return max_area / total_area
 
 
@@ -409,17 +434,23 @@ def skew_score(gray):
     try:
         edges = cv2.Canny(gray, 60, 160)
         lines = cv2.HoughLinesP(
-            edges, 1, np.pi / 180, threshold=80,
-            minLineLength=max(40, gray.shape[1] // 8), maxLineGap=12
+            edges,
+            1,
+            np.pi / 180,
+            threshold=80,
+            minLineLength=max(40, gray.shape[1] // 8),
+            maxLineGap=12,
         )
         if lines is None:
             return 0.0
         angles = []
-        for l in lines[:300]:
-            x1, y1, x2, y2 = l[0]
+        for line in lines[:300]:
+            x1, y1, x2, y2 = line[0]
             ang = math.degrees(math.atan2(y2 - y1, x2 - x1))
-            if ang < -90: ang += 180
-            if ang > 90: ang -= 180
+            if ang < -90:
+                ang += 180
+            if ang > 90:
+                ang -= 180
             if abs(ang) <= 30:
                 angles.append(ang)
         return round(float(abs(np.median(angles))), 2) if angles else 0.0
@@ -488,8 +519,7 @@ def detect_screenshot(gray, img):
         unique_colors = len(np.unique(gray // 16))
 
         horizontal_lines = cv2.HoughLinesP(
-            edges, 1, np.pi / 180, threshold=100,
-            minLineLength=w // 3, maxLineGap=5
+            edges, 1, np.pi / 180, threshold=100, minLineLength=w // 3, maxLineGap=5
         )
         h_line_count = len(horizontal_lines) if horizontal_lines is not None else 0
 
@@ -560,15 +590,19 @@ def auto_rotate_image(img, gray):
         # 用 HoughLines 检测主要线条角度
         edges = cv2.Canny(gray, 60, 160)
         lines = cv2.HoughLinesP(
-            edges, 1, np.pi / 180, threshold=80,
-            minLineLength=max(40, gray.shape[1] // 8), maxLineGap=12
+            edges,
+            1,
+            np.pi / 180,
+            threshold=80,
+            minLineLength=max(40, gray.shape[1] // 8),
+            maxLineGap=12,
         )
         if lines is None:
             return img, 0.0
 
         angles = []
-        for l in lines[:300]:
-            x1, y1, x2, y2 = l[0]
+        for line in lines[:300]:
+            x1, y1, x2, y2 = line[0]
             ang = math.degrees(math.atan2(y2 - y1, x2 - x1))
             if ang < -90:
                 ang += 180
@@ -594,9 +628,13 @@ def auto_rotate_image(img, gray):
         new_h = int(h * cos_a + w * sin_a)
         M[0, 2] += (new_w - w) / 2
         M[1, 2] += (new_h - h) / 2
-        rotated = cv2.warpAffine(img, M, (new_w, new_h),
-                                 flags=cv2.INTER_LINEAR,
-                                 borderMode=cv2.BORDER_REFLECT)
+        rotated = cv2.warpAffine(
+            img,
+            M,
+            (new_w, new_h),
+            flags=cv2.INTER_LINEAR,
+            borderMode=cv2.BORDER_REFLECT,
+        )
         return rotated, median_angle
     except Exception:
         return img, 0.0
@@ -638,10 +676,17 @@ def _compute_metrics(img, gray):
     ocr_conf, text_blocks = OCR.get().run(img)
     face_emb = FACE_REC.get().extract_embedding(img) if face_count >= 1 else None
     return {
-        "blur": blur, "mean": mean, "over": over, "under": under,
-        "skew": skew, "face_boxes": face_boxes, "face_meshes": face_meshes,
-        "pose_angle": pose_angle, "face_count": face_count,
-        "ocr_conf": ocr_conf, "text_blocks": text_blocks,
+        "blur": blur,
+        "mean": mean,
+        "over": over,
+        "under": under,
+        "skew": skew,
+        "face_boxes": face_boxes,
+        "face_meshes": face_meshes,
+        "pose_angle": pose_angle,
+        "face_count": face_count,
+        "ocr_conf": ocr_conf,
+        "text_blocks": text_blocks,
         "face_emb": face_emb,
     }
 
@@ -699,7 +744,9 @@ def _score_portrait(m, thresh, base_score, base_reasons, is_atmo, contrast_q):
         reasons.append("未检测到清晰人脸")
         return score, reasons
 
-    best_ear = min((_eye_aspect_ratio(pts) for pts in m["face_meshes"][:3]), default=999.0)
+    best_ear = min(
+        (_eye_aspect_ratio(pts) for pts in m["face_meshes"][:3]), default=999.0
+    )
     if best_ear != 999.0 and best_ear < thresh["eye_closed"]:
         if is_atmo:
             score -= DEDUCT_EYE_CLOSED_ATMO
@@ -753,7 +800,7 @@ def _score_portrait(m, thresh, base_score, base_reasons, is_atmo, contrast_q):
         reasons.append("大头照，构图不佳")
 
     if m["face_boxes"]:
-        biggest = max(m["face_boxes"], key=lambda b: (b[2]-b[0])*(b[3]-b[1]))
+        biggest = max(m["face_boxes"], key=lambda b: (b[2] - b[0]) * (b[3] - b[1]))
         occ = _occlusion_score(m["gray"], biggest)
         if occ > 0.5:
             score -= DEDUCT_OCCLUSION_SEVERE
@@ -846,7 +893,14 @@ def _score_text(m, thresh, base_score, base_reasons):
     if m["blur"] < 120:
         score -= DEDUCT_TEXT_BLUR
         reasons.append("文字模糊")
-    border = np.concatenate([gray[:8, :].ravel(), gray[-8:, :].ravel(), gray[:, :8].ravel(), gray[:, -8:].ravel()])
+    border = np.concatenate(
+        [
+            gray[:8, :].ravel(),
+            gray[-8:, :].ravel(),
+            gray[:, :8].ravel(),
+            gray[:, -8:].ravel(),
+        ]
+    )
     if np.mean(border) < m["mean"] * 0.65:
         score -= DEDUCT_TEXT_BORDER
         reasons.append("边缘可能残缺")
@@ -858,15 +912,26 @@ def analyze_image_file(path: str) -> MediaResult:
     try:
         img, gray = _load_and_preprocess(path)
     except Exception as e:
-        return MediaResult(path=path, media_type="image", category="unknown", score=0.0, verdict="junk", reason=str(e))
+        return MediaResult(
+            path=path,
+            media_type="image",
+            category="unknown",
+            score=0.0,
+            verdict="junk",
+            reason=str(e),
+        )
 
     thresh = _read_thresholds()
     m = _compute_metrics(img, gray)
     m["img"] = img
     m["gray"] = gray
 
-    categories = infer_category(gray, m["face_count"], m["ocr_conf"], m["text_blocks"], img)
-    is_atmo = _is_atmospheric(img, gray, m["mean"]) and any(c in ("portrait", "landscape") for c in categories)
+    categories = infer_category(
+        gray, m["face_count"], m["ocr_conf"], m["text_blocks"], img
+    )
+    is_atmo = _is_atmospheric(img, gray, m["mean"]) and any(
+        c in ("portrait", "landscape") for c in categories
+    )
 
     base_score, base_reasons, contrast_q, clarity = _score_global(m, thresh, is_atmo)
 
@@ -875,9 +940,13 @@ def analyze_image_file(path: str) -> MediaResult:
 
     for cat in categories:
         if cat == "portrait":
-            cat_score, cat_reasons = _score_portrait(m, thresh, base_score, base_reasons, is_atmo, contrast_q)
+            cat_score, cat_reasons = _score_portrait(
+                m, thresh, base_score, base_reasons, is_atmo, contrast_q
+            )
         elif cat == "landscape":
-            cat_score, cat_reasons = _score_landscape(m, thresh, base_score, base_reasons, is_atmo, contrast_q)
+            cat_score, cat_reasons = _score_landscape(
+                m, thresh, base_score, base_reasons, is_atmo, contrast_q
+            )
         elif cat == "screenshot":
             cat_score, cat_reasons = _score_screenshot(m, base_score, base_reasons)
         elif cat == "text":
@@ -923,9 +992,20 @@ def analyze_media(path: str) -> MediaResult:
             return analyze_image_file(path)
         if path.lower().endswith((".mp4", ".mov", ".mkv", ".avi", ".webm")):
             return analyze_video_file(path)
-        return MediaResult(path=path, media_type="unknown", category="unknown", score=0.0, verdict="junk", reason="不支持的文件类型")
+        return MediaResult(
+            path=path,
+            media_type="unknown",
+            category="unknown",
+            score=0.0,
+            verdict="junk",
+            reason="不支持的文件类型",
+        )
     except Exception as e:
         return MediaResult(
-            path=path, media_type="unknown", category="unknown",
-            score=0.0, verdict="junk", reason=f"分析出错: {str(e)[:50]}"
+            path=path,
+            media_type="unknown",
+            category="unknown",
+            score=0.0,
+            verdict="junk",
+            reason=f"分析出错: {str(e)[:50]}",
         )

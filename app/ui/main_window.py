@@ -4,33 +4,40 @@ import logging
 import os
 import shutil
 import threading
-import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from queue import Queue
 
-logger = logging.getLogger(__name__)
-
-from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QFileDialog, QPushButton, QLabel,
-    QVBoxLayout, QHBoxLayout, QMessageBox, QSplitter, QProgressBar, QFrame,
-    QGroupBox
-)
 from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtGui import QKeySequence, QShortcut
+from PyQt6.QtWidgets import (
+    QFileDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QProgressBar,
+    QPushButton,
+    QSplitter,
+    QVBoxLayout,
+    QWidget,
+)
 
-from app.ui.styles import DARK_STYLE
-from app.ui.cloud_background import CloudBackground
-from app.ui.thumbnail_grid import ThumbnailGrid
-from app.ui.preview_dialog import PreviewDialog
-from app.ui.directory_tree import DirectoryTree
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from app.core.scanner import collect_media_files, analyze_one
 from app.core.duplicates import apply_duplicate_policy
+from app.core.face_recognition import cluster_faces, get_person_name
+from app.core.scanner import analyze_one, collect_media_files
 from app.core.summary import summarize_results
 from app.core.types import MediaResult
-from app.utils.file_utils import normalize_input_paths, is_supported_media_path
+from app.ui.cloud_background import CloudBackground
+from app.ui.directory_tree import DirectoryTree
+from app.ui.preview_dialog import PreviewDialog
+from app.ui.styles import DARK_STYLE
+from app.ui.thumbnail_grid import ThumbnailGrid
 from app.utils.config import get
-from app.core.face_recognition import cluster_faces, get_person_name
+from app.utils.file_utils import is_supported_media_path, normalize_input_paths
+
+logger = logging.getLogger(__name__)
 
 
 class DropTargetWidget(QWidget):
@@ -182,9 +189,13 @@ class MainWindow(QMainWindow):
         self.lbl_total = QLabel("总计：0")
         self.lbl_total.setStyleSheet("font-weight: bold; font-size: 14px;")
         self.lbl_keep = QLabel("保留：0")
-        self.lbl_keep.setStyleSheet("color: #27AE60; font-weight: bold; font-size: 14px;")
+        self.lbl_keep.setStyleSheet(
+            "color: #27AE60; font-weight: bold; font-size: 14px;"
+        )
         self.lbl_junk = QLabel("废片：0")
-        self.lbl_junk.setStyleSheet("color: #E74C3C; font-weight: bold; font-size: 14px;")
+        self.lbl_junk.setStyleSheet(
+            "color: #E74C3C; font-weight: bold; font-size: 14px;"
+        )
         self.lbl_persons = QLabel("")
         self.lbl_persons.setStyleSheet("color: #5B8C9E; font-size: 13px;")
 
@@ -229,8 +240,10 @@ class MainWindow(QMainWindow):
 
     def upload_photos(self):
         files, _ = QFileDialog.getOpenFileNames(
-            self, "上传照片/视频", "",
-            "图片和视频 (*.jpg *.jpeg *.png *.bmp *.webp *.tif *.tiff *.heic *.mp4 *.mov *.mkv *.avi *.webm);;所有文件 (*)"
+            self,
+            "上传照片/视频",
+            "",
+            "图片和视频 (*.jpg *.jpeg *.png *.bmp *.webp *.tif *.tiff *.heic *.mp4 *.mov *.mkv *.avi *.webm);;所有文件 (*)",
         )
         if not files:
             return
@@ -253,12 +266,17 @@ class MainWindow(QMainWindow):
             self.status.setText("路径无效")
             return
 
-        valid_inputs = [p for p in normalized if Path(p).is_dir() or is_supported_media_path(p)]
+        valid_inputs = [
+            p for p in normalized if Path(p).is_dir() or is_supported_media_path(p)
+        ]
         if not valid_inputs:
-            QMessageBox.warning(self, "提示",
+            QMessageBox.warning(
+                self,
+                "提示",
                 "没有找到支持的图片或视频文件\n\n"
                 "图片：jpg, jpeg, png, bmp, webp, tif, tiff, heic\n"
-                "视频：mp4, mov, mkv, avi, webm")
+                "视频：mp4, mov, mkv, avi, webm",
+            )
             return
 
         self.all_results = []
@@ -297,8 +315,12 @@ class MainWindow(QMainWindow):
             if self._cancel_event.is_set():
                 name = item[1] if isinstance(item, tuple) else item
                 return MediaResult(
-                    path=name, media_type="unknown", category="unknown",
-                    score=0.0, verdict="junk", reason="已取消扫描"
+                    path=name,
+                    media_type="unknown",
+                    category="unknown",
+                    score=0.0,
+                    verdict="junk",
+                    reason="已取消扫描",
                 )
             try:
                 return analyze_one(item, cancel_event=self._cancel_event)
@@ -306,12 +328,18 @@ class MainWindow(QMainWindow):
                 logging.exception("扫描线程异常：%s", item)
                 name = item[1] if isinstance(item, tuple) else item
                 return MediaResult(
-                    path=str(name), media_type="unknown", category="unknown",
-                    score=0.0, verdict="review", reason=f"分析异常: {exc}"
+                    path=str(name),
+                    media_type="unknown",
+                    category="unknown",
+                    score=0.0,
+                    verdict="review",
+                    reason=f"分析异常: {exc}",
                 )
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {executor.submit(_analyze, item): item for item in self._media_list}
+            futures = {
+                executor.submit(_analyze, item): item for item in self._media_list
+            }
             for future in as_completed(futures):
                 if self._cancel_event.is_set():
                     break
@@ -322,10 +350,16 @@ class MainWindow(QMainWindow):
                     item = futures[future]
                     logging.exception("并发扫描异常：%s", item)
                     name = item[1] if isinstance(item, tuple) else item
-                    self._scan_queue.put(MediaResult(
-                        path=str(name), media_type="unknown", category="unknown",
-                        score=0.0, verdict="review", reason=f"分析异常: {exc}"
-                    ))
+                    self._scan_queue.put(
+                        MediaResult(
+                            path=str(name),
+                            media_type="unknown",
+                            category="unknown",
+                            score=0.0,
+                            verdict="review",
+                            reason=f"分析异常: {exc}",
+                        )
+                    )
         self._scan_done = True
 
     def _poll_results(self):
@@ -344,7 +378,9 @@ class MainWindow(QMainWindow):
                     self.current_root = str(Path(result.path).parent)
                     self.current_filter = self.current_root
                 except Exception:
-                    logger.debug("设置 current_root 失败: %s", result.path, exc_info=True)
+                    logger.debug(
+                        "设置 current_root 失败: %s", result.path, exc_info=True
+                    )
 
             self._media_index += 1
             count += 1
@@ -354,7 +390,9 @@ class MainWindow(QMainWindow):
             name = Path(self.all_results[-1].path).name
             if len(name) > 35:
                 name = name[:32] + "..."
-            self.status.setText(f"正在分析 ({self._media_index}/{self._scan_total}): {name}")
+            self.status.setText(
+                f"正在分析 ({self._media_index}/{self._scan_total}): {name}"
+            )
 
         if self._scan_done and self._scan_queue.empty():
             self._poll_timer.stop()
@@ -439,10 +477,14 @@ class MainWindow(QMainWindow):
 
         if folder_path.startswith("__person__"):
             # 人物筛选
-            self._person_filter = folder_path[len("__person__"):]
-            filtered = [r for r in self.all_results if r.person_label == self._person_filter]
+            self._person_filter = folder_path[len("__person__") :]
+            filtered = [
+                r for r in self.all_results if r.person_label == self._person_filter
+            ]
             self.grid.set_results(filtered)
-            self.status.setText(f"当前筛选：{self._person_filter}（{len(filtered)} 张）")
+            self.status.setText(
+                f"当前筛选：{self._person_filter}（{len(filtered)} 张）"
+            )
         elif folder_path == "__person_root__":
             # 点击人物分组根节点，显示所有有人物标签的
             filtered = [r for r in self.all_results if r.person_label]
@@ -488,7 +530,7 @@ class MainWindow(QMainWindow):
                 "报告已导出到：\n"
                 f"{csv_path}\n{json_path}\n{summary_path}\n\n"
                 f"待复核：{summary['review']}，废片：{summary['junk']}，"
-                f"预计可释放：{summary['estimated_reclaimable']}"
+                f"预计可释放：{summary['estimated_reclaimable']}",
             )
         except Exception as e:
             QMessageBox.warning(self, "导出失败", f"导出报告时出错：{e}")
@@ -518,9 +560,10 @@ class MainWindow(QMainWindow):
             return
 
         reply = QMessageBox.question(
-            self, "确认移动",
+            self,
+            "确认移动",
             f"确定要将 {len(selected)} 个文件移动到废片箱吗？",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if reply != QMessageBox.StandardButton.Yes:
             return
@@ -597,7 +640,9 @@ class MainWindow(QMainWindow):
         self.refresh_views()
         # 自动勾选非最佳的
         self.grid.select_by_verdict("junk")
-        self.status.setText(f"已保留 {keep_count} 张最佳照片，选中 {select_count} 张相似重复照片待删除")
+        self.status.setText(
+            f"已保留 {keep_count} 张最佳照片，选中 {select_count} 张相似重复照片待删除"
+        )
 
     def batch_delete(self):
         selected = self.grid.selected_results()
@@ -612,8 +657,10 @@ class MainWindow(QMainWindow):
             msg += f"\n\n注意：其中有 {len(keep_items)} 个是保留照片"
 
         reply = QMessageBox.warning(
-            self, "确认永久删除", msg,
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            self,
+            "确认永久删除",
+            msg,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if reply != QMessageBox.StandardButton.Yes:
             return

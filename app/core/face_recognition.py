@@ -14,12 +14,11 @@ logger = logging.getLogger(__name__)
 
 try:
     from insightface.app import FaceAnalysis
+
     try:
         import insightface.utils.storage as insightface_storage
 
-        insightface_storage.BASE_REPO_URL = (
-            "https://ghproxy.net/github.com/deepinsight/insightface/releases/download/v0.7"
-        )
+        insightface_storage.BASE_REPO_URL = "https://ghproxy.net/github.com/deepinsight/insightface/releases/download/v0.7"
     except Exception:
         logger.debug("insightface 存储 URL 设置失败", exc_info=True)
 except Exception:
@@ -27,10 +26,26 @@ except Exception:
     logger.debug("insightface 不可用，人脸特征提取功能禁用", exc_info=True)
 
 PERSON_NAMES = [
-    "人物一", "人物二", "人物三", "人物四", "人物五",
-    "人物六", "人物七", "人物八", "人物九", "人物十",
-    "人物十一", "人物十二", "人物十三", "人物十四", "人物十五",
-    "人物十六", "人物十七", "人物十八", "人物十九", "人物二十",
+    "人物一",
+    "人物二",
+    "人物三",
+    "人物四",
+    "人物五",
+    "人物六",
+    "人物七",
+    "人物八",
+    "人物九",
+    "人物十",
+    "人物十一",
+    "人物十二",
+    "人物十三",
+    "人物十四",
+    "人物十五",
+    "人物十六",
+    "人物十七",
+    "人物十八",
+    "人物十九",
+    "人物二十",
 ]
 
 
@@ -94,11 +109,14 @@ class FaceRecognitionService:
             return None
         try:
             import cv2
+
             rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
             faces = app.get(rgb)
             if not faces:
                 return None
-            best = max(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]))
+            best = max(
+                faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1])
+            )
             emb = best.normed_embedding
             if emb is None:
                 return None

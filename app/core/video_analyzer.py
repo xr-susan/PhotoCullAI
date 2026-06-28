@@ -45,7 +45,7 @@ def analyze_video_file(video_path: str) -> MediaResult:
                 category="unknown",
                 score=50.0,
                 verdict="junk",
-                reason="无法读取视频或无关键帧"
+                reason="无法读取视频或无关键帧",
             )
 
         blur_vals, means, overs, unders = [], [], [], []
@@ -69,7 +69,7 @@ def analyze_video_file(video_path: str) -> MediaResult:
                 category="unknown",
                 score=50.0,
                 verdict="junk",
-                reason="视频帧处理失败"
+                reason="视频帧处理失败",
             )
 
         avg_blur = float(np.mean(blur_vals))
@@ -123,5 +123,5 @@ def analyze_video_file(video_path: str) -> MediaResult:
             category="unknown",
             score=0.0,
             verdict="junk",
-            reason=f"视频分析出错: {str(e)[:50]}"
+            reason=f"视频分析出错: {str(e)[:50]}",
         )

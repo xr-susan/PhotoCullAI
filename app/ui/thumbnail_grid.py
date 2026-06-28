@@ -1,6 +1,15 @@
 from pathlib import Path
 
-from PyQt6.QtWidgets import QWidget, QGridLayout, QScrollArea, QLabel, QVBoxLayout, QHBoxLayout, QFrame, QPushButton
+from PyQt6.QtWidgets import (
+    QWidget,
+    QGridLayout,
+    QScrollArea,
+    QLabel,
+    QVBoxLayout,
+    QHBoxLayout,
+    QFrame,
+    QPushButton,
+)
 from PyQt6.QtCore import Qt
 
 from app.ui.thumbnail_card import ThumbnailCard
@@ -8,6 +17,7 @@ from app.ui.thumbnail_card import ThumbnailCard
 
 class GroupSeparator(QFrame):
     """相似照片组分隔标签"""
+
     def __init__(self, group_id, count, best_name="", parent=None):
         super().__init__(parent)
         self.setFixedHeight(44)
@@ -30,6 +40,7 @@ class GroupSeparator(QFrame):
 
 class PersonSeparator(QFrame):
     """人物分组标签，带全选按钮"""
+
     def __init__(self, person_name, count, on_select_all=None, parent=None):
         super().__init__(parent)
         self.setFixedHeight(48)
@@ -139,15 +150,20 @@ class ThumbnailGrid(QScrollArea):
         # 先显示每个人物组
         if person_groups:
             # 按人物名称排序（人物一、人物二...）
-            sorted_persons = sorted(person_groups.items(), key=lambda x: results.index(x[1][0]))
+            sorted_persons = sorted(
+                person_groups.items(), key=lambda x: results.index(x[1][0])
+            )
             for person_name, person_results in sorted_persons:
                 # 按分数排序
                 person_results.sort(key=lambda r: r.score, reverse=True)
 
                 # 插入人物分隔标签（带全选按钮）
                 sep = PersonSeparator(
-                    person_name, len(person_results),
-                    on_select_all=lambda checked=False, p=person_name: self.select_by_person(p)
+                    person_name,
+                    len(person_results),
+                    on_select_all=lambda checked=False, p=person_name: self.select_by_person(
+                        p
+                    ),
                 )
                 self._extra_widgets.append(sep)
                 self.layout.addWidget(sep, row, 0, 1, self._columns)
@@ -169,7 +185,9 @@ class ThumbnailGrid(QScrollArea):
                     if len(members) > 1:
                         members.sort(key=lambda r: r.score, reverse=True)
                         best_name = Path(members[0].path).name
-                        sep = GroupSeparator(group_counter, len(members), best_name=best_name)
+                        sep = GroupSeparator(
+                            group_counter, len(members), best_name=best_name
+                        )
                         self._extra_widgets.append(sep)
                         self.layout.addWidget(sep, row, 0, 1, self._columns)
                         row += 1
@@ -223,7 +241,9 @@ class ThumbnailGrid(QScrollArea):
                 if len(members) > 1:
                     members.sort(key=lambda r: r.score, reverse=True)
                     best_name = Path(members[0].path).name
-                    sep = GroupSeparator(group_counter, len(members), best_name=best_name)
+                    sep = GroupSeparator(
+                        group_counter, len(members), best_name=best_name
+                    )
                     self._extra_widgets.append(sep)
                     self.layout.addWidget(sep, row, 0, 1, self._columns)
                     row += 1

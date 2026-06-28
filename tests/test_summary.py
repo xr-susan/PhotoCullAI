@@ -4,7 +4,13 @@ from app.core.summary import format_bytes, summarize_results
 from app.core.types import MediaResult
 
 
-def _result(path: str, verdict: str, category: str = "portrait", group: int = -1, keep: bool = False):
+def _result(
+    path: str,
+    verdict: str,
+    category: str = "portrait",
+    group: int = -1,
+    keep: bool = False,
+):
     return MediaResult(
         path=path,
         media_type="image",

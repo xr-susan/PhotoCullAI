@@ -1,5 +1,5 @@
-# 精简版依赖：不含 PaddlePaddle/PaddleOCR/InsightFace/MediaPipe 等大型 ML 库
-# 功能受限：无人脸识别、无 OCR、无人脸检测，但基础图片质量分析仍可用
+# Minimal dependencies without PaddlePaddle, PaddleOCR, InsightFace, or MediaPipe.
+# Some face, OCR, and ML features are disabled with this install set.
 PyQt6>=6.7.0
 numpy>=1.26.0
 opencv-python>=4.10.0.84

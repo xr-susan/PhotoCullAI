@@ -1,17 +1,27 @@
 import numpy as np
-import pytest
 from app.utils.image_utils import blur_score, brightness_metrics
 from app.core.analyzer import (
-    colorfulness_bgr, _contrast_quality, _subject_clarity,
-    infer_category, _is_atmospheric, _eye_aspect_ratio, _mouth_ratio,
-    _pose_awkwardness, _face_relative_size, _expression_quality,
-    _asymmetry_score, _occlusion_score, _score_global, _score_portrait,
-    _score_landscape, _score_screenshot, _score_text, _read_thresholds,
-    DEDUCT_BLUR_HEAVY, DEDUCT_BLUR_LIGHT, DEDUCT_OVEREXPOSE,
+    colorfulness_bgr,
+    _contrast_quality,
+    _subject_clarity,
+    infer_category,
+    _is_atmospheric,
+    _eye_aspect_ratio,
+    _mouth_ratio,
+    _pose_awkwardness,
+    _face_relative_size,
+    _expression_quality,
+    _asymmetry_score,
+    _occlusion_score,
+    _score_global,
+    _read_thresholds,
+    DEDUCT_BLUR_HEAVY,
+    DEDUCT_BLUR_LIGHT,
+    DEDUCT_OVEREXPOSE,
 )
 
-
 # ---- 辅助构造 ----
+
 
 def _make_gray(w=200, h=200, value=128):
     return np.full((h, w), value, dtype=np.uint8)
@@ -25,12 +35,13 @@ def _make_img(w=200, h=200, bgr=(128, 128, 128)):
 def _sharp_gray(w=400, h=400):
     """有清晰边缘的灰度图。"""
     gray = np.zeros((h, w), dtype=np.uint8)
-    gray[:h//2, :w//2] = 255
-    gray[h//2:, w//2:] = 200
+    gray[: h // 2, : w // 2] = 255
+    gray[h // 2 :, w // 2 :] = 200
     return gray
 
 
 # ---- blur_score / brightness_metrics ----
+
 
 class TestBlurScore:
     def test_uniform_image_low_blur(self):
@@ -70,6 +81,7 @@ class TestBrightnessMetrics:
 
 # ---- colorfulness_bgr ----
 
+
 class TestColorfulness:
     def test_gray_image_low_color(self):
         img = _make_img(100, 100, (128, 128, 128))
@@ -81,6 +93,7 @@ class TestColorfulness:
 
 
 # ---- _contrast_quality ----
+
 
 class TestContrastQuality:
     def test_uniform_low_contrast(self):
@@ -96,6 +109,7 @@ class TestContrastQuality:
 
 # ---- _subject_clarity ----
 
+
 class TestSubjectClarity:
     def test_uniform_low_clarity(self):
         gray = _make_gray(200, 200, 128)
@@ -108,6 +122,7 @@ class TestSubjectClarity:
 
 
 # ---- infer_category ----
+
 
 class TestInferCategory:
     def test_no_face_no_text_defaults_landscape(self):
@@ -132,6 +147,7 @@ class TestInferCategory:
 
 # ---- _is_atmospheric ----
 
+
 class TestIsAtmospheric:
     def test_bright_not_atmospheric(self):
         gray = _make_gray(200, 200, 200)
@@ -147,6 +163,7 @@ class TestIsAtmospheric:
 
 
 # ---- face helper functions ----
+
 
 class TestFaceHelpers:
     def test_eye_aspect_ratio_no_pts(self):
@@ -174,6 +191,7 @@ class TestFaceHelpers:
 
 # ---- _read_thresholds ----
 
+
 class TestReadThresholds:
     def test_returns_dict(self):
         t = _read_thresholds()
@@ -188,11 +206,17 @@ class TestReadThresholds:
 
 # ---- _score_global ----
 
+
 class TestScoreGlobal:
     def test_perfect_image_high_score(self):
         m = {
-            "blur": 500, "mean": 120, "over": 0.0, "under": 0.0,
-            "skew": 0.0, "img": _make_img(), "gray": _sharp_gray(),
+            "blur": 500,
+            "mean": 120,
+            "over": 0.0,
+            "under": 0.0,
+            "skew": 0.0,
+            "img": _make_img(),
+            "gray": _sharp_gray(),
         }
         thresh = _read_thresholds()
         score, reasons, contrast_q, clarity = _score_global(m, thresh, False)
@@ -201,8 +225,13 @@ class TestScoreGlobal:
 
     def test_blurry_image_deducted(self):
         m = {
-            "blur": 10, "mean": 120, "over": 0.0, "under": 0.0,
-            "skew": 0.0, "img": _make_img(), "gray": _make_gray(value=120),
+            "blur": 10,
+            "mean": 120,
+            "over": 0.0,
+            "under": 0.0,
+            "skew": 0.0,
+            "img": _make_img(),
+            "gray": _make_gray(value=120),
         }
         thresh = _read_thresholds()
         score, reasons, _, _ = _score_global(m, thresh, False)
@@ -211,8 +240,13 @@ class TestScoreGlobal:
 
     def test_overexposed_deducted(self):
         m = {
-            "blur": 500, "mean": 250, "over": 0.5, "under": 0.0,
-            "skew": 0.0, "img": _make_img(), "gray": _make_gray(value=250),
+            "blur": 500,
+            "mean": 250,
+            "over": 0.5,
+            "under": 0.0,
+            "skew": 0.0,
+            "img": _make_img(),
+            "gray": _make_gray(value=250),
         }
         thresh = _read_thresholds()
         score, reasons, _, _ = _score_global(m, thresh, False)
@@ -220,6 +254,7 @@ class TestScoreGlobal:
 
 
 # ---- 常量存在性 ----
+
 
 class TestConstants:
     def test_deduction_constants_exist(self):

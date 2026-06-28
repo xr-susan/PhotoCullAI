@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 try:
     import pillow_heif
+
     pillow_heif.register_heif_opener()
 except Exception:
     logger.debug("pillow_heif 注册失败，HEIC 格式可能不可用", exc_info=True)
@@ -24,7 +25,9 @@ def resize_long_side(img, max_side=1600):
     scale = max_side / max(h, w)
     if scale >= 1:
         return img
-    return cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+    return cv2.resize(
+        img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA
+    )
 
 
 def bgr_to_gray(img):

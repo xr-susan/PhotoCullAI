@@ -24,7 +24,16 @@ _DEFAULTS = {
         "junk_dir": "data/junk",
     },
     "scan": {
-        "image_extensions": [".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff", ".heic"],
+        "image_extensions": [
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".bmp",
+            ".webp",
+            ".tif",
+            ".tiff",
+            ".heic",
+        ],
         "video_extensions": [".mp4", ".mov", ".mkv", ".avi", ".webm"],
         "max_workers": 2,
     },
@@ -68,7 +77,11 @@ def _load_config() -> dict:
 def _deep_merge(defaults: dict, overrides: dict) -> dict:
     result = {}
     for key, val in defaults.items():
-        if key in overrides and isinstance(val, dict) and isinstance(overrides[key], dict):
+        if (
+            key in overrides
+            and isinstance(val, dict)
+            and isinstance(overrides[key], dict)
+        ):
             result[key] = _deep_merge(val, overrides[key])
         elif key in overrides:
             result[key] = overrides[key]

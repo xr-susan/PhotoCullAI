@@ -49,10 +49,15 @@ def analyze_one(item, cancel_event: threading.Event = None):
     """分析单个文件，支持通过 cancel_event 中途取消。"""
     if cancel_event and cancel_event.is_set():
         from app.core.types import MediaResult
+
         name = item[1] if isinstance(item, tuple) else item
         return MediaResult(
-            path=name, media_type="unknown", category="unknown",
-            score=0.0, verdict="junk", reason="已取消扫描"
+            path=name,
+            media_type="unknown",
+            category="unknown",
+            score=0.0,
+            verdict="junk",
+            reason="已取消扫描",
         )
     try:
         if isinstance(item, tuple):
@@ -63,8 +68,13 @@ def analyze_one(item, cancel_event: threading.Event = None):
     except Exception as e:
         logging.exception("分析文件失败：%s", item)
         from app.core.types import MediaResult
+
         name = item[1] if isinstance(item, tuple) else item
         return MediaResult(
-            path=name, media_type="unknown", category="unknown",
-            score=0.0, verdict="junk", reason=f"分析出错: {str(e)[:40]}"
+            path=name,
+            media_type="unknown",
+            category="unknown",
+            score=0.0,
+            verdict="junk",
+            reason=f"分析出错: {str(e)[:40]}",
         )

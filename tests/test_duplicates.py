@@ -54,8 +54,12 @@ class TestUnionFind:
 class TestMediaResult:
     def test_basic_creation(self):
         r = MediaResult(
-            path="test.jpg", media_type="image", category="portrait",
-            score=80.0, verdict="keep", reason="ok"
+            path="test.jpg",
+            media_type="image",
+            category="portrait",
+            score=80.0,
+            verdict="keep",
+            reason="ok",
         )
         assert r.path == "test.jpg"
         assert r.score == 80.0
@@ -64,9 +68,13 @@ class TestMediaResult:
 
     def test_to_dict_excludes_embedding(self):
         r = MediaResult(
-            path="test.jpg", media_type="image", category="portrait",
-            score=80.0, verdict="keep", reason="ok",
-            face_embedding=[1, 2, 3]
+            path="test.jpg",
+            media_type="image",
+            category="portrait",
+            score=80.0,
+            verdict="keep",
+            reason="ok",
+            face_embedding=[1, 2, 3],
         )
         d = r.to_dict()
         assert "face_embedding" not in d
@@ -74,8 +82,12 @@ class TestMediaResult:
 
     def test_no_dead_fields(self):
         r = MediaResult(
-            path="test.jpg", media_type="image", category="portrait",
-            score=80.0, verdict="keep", reason="ok"
+            path="test.jpg",
+            media_type="image",
+            category="portrait",
+            score=80.0,
+            verdict="keep",
+            reason="ok",
         )
         assert not hasattr(r, "rotate_angle")
         assert not hasattr(r, "corrected_path")

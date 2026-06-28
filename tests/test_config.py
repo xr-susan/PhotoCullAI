@@ -12,18 +12,12 @@ class TestDeepMerge:
         assert result["a"] == 2
 
     def test_merge_nested(self):
-        result = _deep_merge(
-            {"sec": {"k1": 1, "k2": 2}},
-            {"sec": {"k2": 99}}
-        )
+        result = _deep_merge({"sec": {"k1": 1, "k2": 2}}, {"sec": {"k2": 99}})
         assert result["sec"]["k1"] == 1
         assert result["sec"]["k2"] == 99
 
     def test_merge_preserves_defaults(self):
-        result = _deep_merge(
-            {"a": {"x": 1}},
-            {}
-        )
+        result = _deep_merge({"a": {"x": 1}}, {})
         assert result["a"]["x"] == 1
 
 

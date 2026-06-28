@@ -99,7 +99,9 @@ class ThumbnailCard(QFrame):
         filename = Path(result.paired_image or result.path).name
         self.filename_label = QLabel(filename)
         self.filename_label.setWordWrap(True)
-        self.filename_label.setStyleSheet("font-size: 12px; color: #34495E; font-weight: bold;")
+        self.filename_label.setStyleSheet(
+            "font-size: 12px; color: #34495E; font-weight: bold;"
+        )
         self.filename_label.setMaximumHeight(36)
         layout.addWidget(self.filename_label)
 
@@ -111,7 +113,9 @@ class ThumbnailCard(QFrame):
             "video": "视频",
             "unknown": "未知",
         }
-        cats = result.category.split(",") if "," in result.category else [result.category]
+        cats = (
+            result.category.split(",") if "," in result.category else [result.category]
+        )
         cat_text = "·".join(category_map.get(c.strip(), c.strip()) for c in cats)
 
         media_icon = ""
@@ -170,10 +174,16 @@ class ThumbnailCard(QFrame):
             self.image_label.setText("无预览")
             self.image_label.setStyleSheet("color: #8BA8B8; font-size: 12px;")
         else:
-            scaled = pix.scaled(200, 170, Qt.AspectRatioMode.KeepAspectRatio,
-                                Qt.TransformationMode.SmoothTransformation)
+            scaled = pix.scaled(
+                200,
+                170,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
             self.image_label.setPixmap(scaled)
-            self.image_label.setStyleSheet("background: rgba(135, 206, 235, 0.1); border-radius: 8px;")
+            self.image_label.setStyleSheet(
+                "background: rgba(135, 206, 235, 0.1); border-radius: 8px;"
+            )
 
     def mouseDoubleClickEvent(self, event):
         if self.on_open:

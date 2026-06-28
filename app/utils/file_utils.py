@@ -46,7 +46,15 @@ def normalize_input_paths(paths):
 def list_media_files(root: str):
     root_path = Path(root)
     # 排除的目录
-    exclude_dirs = {'.venv', 'venv', '__pycache__', '.git', 'node_modules', '.idea', '.vscode'}
+    exclude_dirs = {
+        ".venv",
+        "venv",
+        "__pycache__",
+        ".git",
+        "node_modules",
+        ".idea",
+        ".vscode",
+    }
 
     for p in root_path.rglob("*"):
         # 检查是否在排除的目录中

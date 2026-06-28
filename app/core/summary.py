@@ -46,7 +46,9 @@ def summarize_results(results: list[MediaResult]) -> dict:
 
     duplicate_sets = [group for group in duplicate_groups.values() if len(group) > 1]
     duplicate_junk = sum(
-        1 for group in duplicate_sets for item in group
+        1
+        for group in duplicate_sets
+        for item in group
         if item.verdict == "junk" and not item.duplicate_keep
     )
 

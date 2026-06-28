@@ -2,15 +2,31 @@ import math
 import random
 
 from PyQt6.QtCore import Qt, QTimer, QPointF, QRectF
-from PyQt6.QtGui import QPainter, QColor, QBrush, QPen
+from PyQt6.QtGui import QPainter, QColor, QBrush
 from PyQt6.QtWidgets import QWidget
 
 
 class Cloud:
-    __slots__ = ('x', 'y', 'base_y', 'size', 'speed', 'base_opacity',
-                 'opacity', 'wobble_offset', 'wobble_speed', 'wobble_amp',
-                 'breathe_offset', 'breathe_speed', 'breathe_amp',
-                 'drift_y_offset', 'drift_y_speed', 'drift_y_amp', 'seed')
+    __slots__ = (
+        "x",
+        "y",
+        "base_y",
+        "size",
+        "speed",
+        "base_opacity",
+        "opacity",
+        "wobble_offset",
+        "wobble_speed",
+        "wobble_amp",
+        "breathe_offset",
+        "breathe_speed",
+        "breathe_amp",
+        "drift_y_offset",
+        "drift_y_speed",
+        "drift_y_amp",
+        "seed",
+    )
+
     def __init__(self, x, y, size, speed, opacity):
         self.x = x
         self.y = y
@@ -77,11 +93,18 @@ class CloudBackground(QWidget):
         for c in self.clouds:
             c.x += c.speed
             # 垂直方向的正弦漂移
-            c.y = c.base_y + math.sin(self.time * c.wobble_speed + c.wobble_offset) * c.wobble_amp
+            c.y = (
+                c.base_y
+                + math.sin(self.time * c.wobble_speed + c.wobble_offset) * c.wobble_amp
+            )
             # 缓慢的大范围垂直漂移
-            c.y += math.sin(self.time * c.drift_y_speed + c.drift_y_offset) * c.drift_y_amp
+            c.y += (
+                math.sin(self.time * c.drift_y_speed + c.drift_y_offset) * c.drift_y_amp
+            )
             # 透明度呼吸效果
-            breathe = math.sin(self.time * c.breathe_speed + c.breathe_offset) * c.breathe_amp
+            breathe = (
+                math.sin(self.time * c.breathe_speed + c.breathe_offset) * c.breathe_amp
+            )
             c.opacity = max(0.05, min(0.45, c.base_opacity + breathe))
             if c.x > w + c.size * 2:
                 c.x = -c.size * 2.5

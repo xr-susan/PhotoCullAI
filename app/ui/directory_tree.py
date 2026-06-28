@@ -48,7 +48,9 @@ class DirectoryTree(QTreeWidget):
                 person_groups[r.person_label].append(r)
 
         if person_groups:
-            person_root = QTreeWidgetItem(["  人物分组", str(sum(len(v) for v in person_groups.values()))])
+            person_root = QTreeWidgetItem(
+                ["  人物分组", str(sum(len(v) for v in person_groups.values()))]
+            )
             person_root.setData(0, Qt.ItemDataRole.UserRole, "__person_root__")
             all_item.addChild(person_root)
 
@@ -63,7 +65,9 @@ class DirectoryTree(QTreeWidget):
             self.expandItem(person_root)
 
         # ---- 目录树 ----
-        root_item = QTreeWidgetItem([root.name or str(root), str(counts.get(str(root), 0))])
+        root_item = QTreeWidgetItem(
+            [root.name or str(root), str(counts.get(str(root), 0))]
+        )
         root_item.setData(0, Qt.ItemDataRole.UserRole, str(root))
         all_item.addChild(root_item)
         self._path_to_item[str(root)] = root_item
