@@ -22,9 +22,19 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
+        # setuptools is pre-installed in the runner's Python (79.0.1) and is
+        # audited along with everything else. That version is flagged by
+        # PYSEC-2026-3447 / GHSA-h35f-9h28-mq5c (MANIFEST.in exclusion bypass
+        # in sdist), fixed in 83.0.0, so the dependency audit failed on a
+        # package this project never declared. Upgrade it rather than muting
+        # the audit.
+        python -m pip install --upgrade pip "setuptools>=83.0.0"
         pip install -r requirements-minimal.txt
-        pip install pytest black ruff pip-audit pre-commit
+        # Pin the two linters to the versions pinned in .pre-commit-config.yaml.
+        # Installing them unpinned means a new release can change the rules and
+        # fail this job with no code change: ruff 0.16 widened its default rule
+        # set and turned a clean tree into 106 findings.
+        pip install pytest "black==26.5.1" "ruff==0.15.20" pip-audit pre-commit
     - name: Run formatting check
       run: |
         black --check .

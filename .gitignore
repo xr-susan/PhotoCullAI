@@ -52,3 +52,5 @@ crash.log
 
 # Agent workspace files
 .agents/
+# Stray lockfile written by unrelated AI skill tooling; not part of this app
+skills-lock.json
